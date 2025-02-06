@@ -16,6 +16,7 @@ from stable_baselines3.common.callbacks import (
     EvalCallback,
 )
 
+
 # load configuration from YAML file
 def load_config():
     yaml_filename = f"{CONFIG['model_class']}_{CONFIG['env_id']}.yaml"
@@ -23,26 +24,49 @@ def load_config():
 
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Hyperparameters config file not found: {config_path}")
-        
+
     print(f"Reading hyperparameters from: {config_path}")
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
-    
+
     # convert replay_buffer_class from string to actual class
     if "replay_buffer_class" in config:
         config["replay_buffer_class"] = HerReplayBuffer
     return config
 
+
 # argument parser for flexibility
 def parse_args():
-    parser = argparse.ArgumentParser(description="Train RL agent for FetchPush environment.")
-    parser.add_argument("--model", type=str, default="SAC", choices=["DDPG", "TD3", "SAC"], help="RL model to use (DDPG, TD3, SAC)")
-    parser.add_argument("--env", type=str, default="FetchPickAndPlace-v4", help="Gymnasium environment ID")
+    parser = argparse.ArgumentParser(
+        description="Train RL agent for FetchPush environment."
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="SAC",
+        choices=["DDPG", "TD3", "SAC"],
+        help="RL model to use (DDPG, TD3, SAC)",
+    )
+    parser.add_argument(
+        "--env",
+        type=str,
+        default="FetchPickAndPlace-v4",
+        help="Gymnasium environment ID",
+    )
     parser.add_argument("--seed", type=int, default=42, help="Seed for reproducibility")
-    parser.add_argument("--log_dir", type=str, default="./logs", help="Base directory for logs")
-    parser.add_argument("--verbose", type=int, default=1, choices=[0, 1, 2], help="Verbosity level (0: no output, 1: info, 2: debug)")
+    parser.add_argument(
+        "--log_dir", type=str, default="./logs", help="Base directory for logs"
+    )
+    parser.add_argument(
+        "--verbose",
+        type=int,
+        default=1,
+        choices=[0, 1, 2],
+        help="Verbosity level (0: no output, 1: info, 2: debug)",
+    )
     return parser.parse_args()
+
 
 args = parse_args()
 
@@ -66,21 +90,24 @@ base_dir = os.path.join(CONFIG["log_dir"], env_name)
 run_dir = os.path.join(base_dir, f"{CONFIG['model_class']}_{timestamp}")
 
 # set up directory structure
-CONFIG.update({
-    "checkpoint_dir": os.path.join(run_dir, "checkpoints"),
-    "tensorboard_log_dir": os.path.join(base_dir, "tensorboard"),
-})
+CONFIG.update(
+    {
+        "checkpoint_dir": os.path.join(run_dir, "checkpoints"),
+        "tensorboard_log_dir": os.path.join(base_dir, "tensorboard"),
+    }
+)
 
 # setup logging directories
-for dir_path in [CONFIG["checkpoint_dir"], 
-                CONFIG["tensorboard_log_dir"]]:
+for dir_path in [CONFIG["checkpoint_dir"], CONFIG["tensorboard_log_dir"]]:
     os.makedirs(dir_path, exist_ok=True)
 
 # environment setup
 gym.register_envs(gymnasium_robotics)
 env = gym.make(CONFIG["env_id"])
 env.reset(seed=CONFIG["seed"])
-env.action_space.seed(CONFIG["seed"]) # Seed action space for more deterministic behavior
+env.action_space.seed(
+    CONFIG["seed"]
+)  # Seed action space for more deterministic behavior
 
 # callbacks
 checkpoint_callback = CheckpointCallback(
@@ -122,7 +149,7 @@ model = model_class(
     action_noise=action_noise,
     tensorboard_log=CONFIG["tensorboard_log_dir"],
     policy_kwargs=CONFIG["policy_kwargs"],
-    seed=CONFIG["seed"]
+    seed=CONFIG["seed"],
 )
 
 # training loop
