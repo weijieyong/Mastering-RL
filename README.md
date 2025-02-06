@@ -1,5 +1,5 @@
 # Journey to Mastering Reinforcement Learning
-<!-- ![FetchPickAndPlace-v4-SAC-HER](videos/output.gif) -->
+
 <p align="center">
   <img src="videos/output.gif" width="60%" alt="FetchPickAndPlace-v4-SAC-HER">
   <br>
@@ -21,12 +21,13 @@ Goal: Intensive 3-day journey from foundational Reinforcement Learning (RL) conc
         <img src="docs/success-rate.png" width="90%" >
     </p>
 
+
 ## Technical Implementation
 - **Framework**: [Stable Baselines3](https://stable-baselines3.readthedocs.io/en/master/) + [Gymnasium](https://gymnasium.farama.org/)
 - **Algorithm**: SAC (Soft Actor-Critic) with HER (Hindsight Experience Replay)
-- **Environment**: FetchPickAndPlace-v4 from Gymnasium-Robotics
-- **Hardware**: MacBook Pro (CPU training on M1 Pro)
+- **Environment**: FetchPickAndPlace-v4 from [Gymnasium-Robotics](https://robotics.farama.org/index.html) (powered by MuJoCo)
 - **Python Version**: 3.12.3
+- **Hardware**: macOS Sequoia 15.2 (CPU training on M1 Pro)
 
 
 ## Quick Start Guide
@@ -52,8 +53,14 @@ pip install -e Gymnasium-Robotics/
 
 ### Training
 ```bash
-python fetch_train.py
+python fetch_train.py # default config
+# --- or --- 
+python fetch_train.py --model SAC --env FetchPickAndPlace-v4  #specify algorithm and environment
 ```
+
+> [!IMPORTANT]
+> Before training, ensure you have created a hyperparameter configuration file in the `hyperparams/` folder for your specific algorithm and environment combination (e.g., `hyperparams/SAC_FetchPickAndPlace-v4.yaml`).
+
 
 ### Evaluation
 ```bash
@@ -73,7 +80,7 @@ tensorboard --logdir logs/FetchPickAndPlace-v4/tensorboard
   - Explore multi-task learning capabilities
 
 - **Environment Complexity**
-  - Extend to more challenging manipulation tasks (e.g., FetchSlide, FetchPush)
+  - Create custom environments for more challenging manipulation tasks
   - Add obstacles and constraints to the environment
   - Implement real-world domain randomization
 
