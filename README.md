@@ -40,8 +40,8 @@ git clone --recursive https://github.com/weijieyong/Mastering-RL.git
 cd Mastering-RL
 
 # Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -53,9 +53,9 @@ pip install -e Gymnasium-Robotics/
 
 ### Training
 ```bash
-python fetch_train.py # default config
+python train.py # default config (SAC, FetchPickAndPlace-v4)
 # --- or --- 
-python fetch_train.py --model SAC --env FetchPickAndPlace-v4  #specify algorithm and environment
+python train.py --model SAC --env FetchPickAndPlace-v4  #specify algorithm and environment
 ```
 
 > [!IMPORTANT]
@@ -64,7 +64,7 @@ python fetch_train.py --model SAC --env FetchPickAndPlace-v4  #specify algorithm
 
 ### Evaluation
 ```bash
-python fetch_eval.py  # Automatically uses latest model
+python eval.py  # Automatically uses latest model
 ```
 
 ### View training metrics
