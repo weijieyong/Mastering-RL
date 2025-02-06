@@ -3,6 +3,7 @@
 import os
 import argparse
 from datetime import datetime
+import yaml
 
 import gymnasium as gym
 import gymnasium_robotics
@@ -15,48 +16,46 @@ from stable_baselines3.common.callbacks import (
     EvalCallback,
 )
 
-# configuration
-CONFIG = {
-    "env_id": "FetchPickAndPlace-v4",
-    "seed": 42,
-    "model_class": "SAC",
-    "total_timesteps": 2_000_000,
-    "log_dir": "./logs",
-    # model hyperparameters
-    "buffer_size": 1_000_000,
-    "batch_size": 1024,
-    "gamma": 0.95,
-    "tau": 0.05,
-    "learning_rate": 0.001,
-    "n_sampled_goal": 4,
-    "goal_selection_strategy": "future",
-    "action_noise_sigma": 0.1,
-    "n_critics": 2,
-    "policy_net_arch": [512, 512, 512],
-    "eval_freq": 50_000,
-    "checkpoint_freq": 200_000,
-}
+# load configuration from YAML file
+def load_config():
+    yaml_filename = f"{CONFIG['model_class']}_{CONFIG['env_id']}.yaml"
+    config_path = os.path.join("hyperparams", yaml_filename)
+
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Hyperparameters config file not found: {config_path}")
+        
+    print(f"Reading hyperparameters from: {config_path}")
+
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    
+    # convert replay_buffer_class from string to actual class
+    if "replay_buffer_class" in config:
+        config["replay_buffer_class"] = HerReplayBuffer
+    return config
 
 # argument parser for flexibility
 def parse_args():
     parser = argparse.ArgumentParser(description="Train RL agent for FetchPush environment.")
-    parser.add_argument("--model", type=str, default=CONFIG["model_class"], choices=["DDPG", "TD3", "SAC"], help="RL model to use (DDPG, TD3, SAC)")
-    parser.add_argument("--env", type=str, default=CONFIG["env_id"], help="Gymnasium environment ID")
-    parser.add_argument("--seed", type=int, default=CONFIG["seed"], help="Seed for reproducibility")
-    parser.add_argument("--timesteps", type=int, default=CONFIG["total_timesteps"], help="Total training timesteps")
-    parser.add_argument("--log_dir", type=str, default=CONFIG["log_dir"], help="Base directory for logs")
+    parser.add_argument("--model", type=str, default="SAC", choices=["DDPG", "TD3", "SAC"], help="RL model to use (DDPG, TD3, SAC)")
+    parser.add_argument("--env", type=str, default="FetchPickAndPlace-v4", help="Gymnasium environment ID")
+    parser.add_argument("--seed", type=int, default=42, help="Seed for reproducibility")
+    parser.add_argument("--log_dir", type=str, default="./logs", help="Base directory for logs")
+    parser.add_argument("--verbose", type=int, default=1, choices=[0, 1, 2], help="Verbosity level (0: no output, 1: info, 2: debug)")
     return parser.parse_args()
 
 args = parse_args()
 
-# update config with args
-CONFIG.update({
+CONFIG = {
     "model_class": args.model,
     "env_id": args.env,
     "seed": args.seed,
-    "total_timesteps": args.timesteps,
     "log_dir": args.log_dir,
-})
+    "verbose": args.verbose,
+}
+
+# update CONFIG with the loaded config
+CONFIG.update(load_config())
 
 # organizing logs
 env_name = CONFIG["env_id"]
@@ -110,22 +109,19 @@ action_noise = NormalActionNoise(
 
 # model initialization
 model = model_class(
-    "MultiInputPolicy",
+    policy=CONFIG["policy"],
     env=env,
     buffer_size=CONFIG["buffer_size"],
     batch_size=CONFIG["batch_size"],
     gamma=CONFIG["gamma"],
     tau=CONFIG["tau"],
     learning_rate=CONFIG["learning_rate"],
-    replay_buffer_class=HerReplayBuffer,
-    replay_buffer_kwargs=dict(
-        n_sampled_goal=CONFIG["n_sampled_goal"],
-        goal_selection_strategy=CONFIG["goal_selection_strategy"],
-    ),
-    verbose=1,
+    replay_buffer_class=CONFIG.get("replay_buffer_class"),
+    replay_buffer_kwargs=CONFIG.get("replay_buffer_kwargs"),
+    verbose=CONFIG["verbose"],
     action_noise=action_noise,
     tensorboard_log=CONFIG["tensorboard_log_dir"],
-    policy_kwargs=dict(n_critics=CONFIG["n_critics"], net_arch=CONFIG["policy_net_arch"]),
+    policy_kwargs=CONFIG["policy_kwargs"],
     seed=CONFIG["seed"]
 )
 
