@@ -35,8 +35,8 @@ Goal: Intensive 3-day journey from foundational Reinforcement Learning (RL) conc
 ### Setup
 
 ```bash
-# Clone repository with submodules
-git clone --recursive https://github.com/weijieyong/Mastering-RL.git
+# Clone repository
+git clone https://github.com/weijieyong/Mastering-RL.git
 cd Mastering-RL
 
 # Create and activate virtual environment
@@ -45,7 +45,6 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-pip install -e Gymnasium-Robotics/
 ```
 > [!NOTE] 
 > Gymnasium-Robotics is installed from source due to [initial state issues](https://github.com/Farama-Foundation/Gymnasium-Robotics/pull/256)
